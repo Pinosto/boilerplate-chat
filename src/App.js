@@ -1,12 +1,29 @@
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
+import { useSpeechSynthesis } from 'react-speech-kit';
 import logo from './logo.svg';
 import './App.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const App = () => {
 
-  const { transcript, resetTranscript } = useSpeechRecognition();
+  const commands = [
+    {
+      command: '*',
+      callback: (userSpeak) => setphrase(userSpeak)
+    },
+  ]
+  const { transcript, resetTranscript } = useSpeechRecognition({ commands });
+  const { speak } = useSpeechSynthesis();
   const [chatOn, setchatOn] = useState(false)
+  const [phrase, setphrase] = useState('')
+
+  useEffect(() => {
+    if (phrase !== '') {
+      resetTranscript()
+      console.log(phrase)
+      speak({ text: phrase })
+    }
+  }, [phrase])
 
   if (!SpeechRecognition.browserSupportsSpeechRecognition()) {
     return (
@@ -20,6 +37,7 @@ const App = () => {
     setchatOn(!chatOn)
     SpeechRecognition.startListening({
       continuous: true,
+      language: 'en-US',
     });
   }
   const handleChatOff = () => {
@@ -30,6 +48,7 @@ const App = () => {
   const notSoFast = (e) => {
     e.preventDefault()
     resetTranscript();
+    speak({ text: transcript })
     console.log(`dont go`);
   }
   return (
@@ -38,10 +57,10 @@ const App = () => {
         {chatOn ?
           <div>
             <img src={logo} className="App-logo-run" alt="logo" onClick={handleChatOff} />
-            {transcript?
+            {transcript ?
               <p>{transcript}</p>
               :
-              <p>rec</p>
+              <p>{phrase}</p>
             }
           </div>
           :
