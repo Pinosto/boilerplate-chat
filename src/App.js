@@ -9,21 +9,34 @@ const App = () => {
   const commands = [
     {
       command: '*',
-      callback: (userSpeak) => setphrase(userSpeak)
+      callback: (userSpeak) => setMyPhrase(userSpeak)
     },
   ]
   const { transcript, resetTranscript } = useSpeechRecognition({ commands });
   const { speak } = useSpeechSynthesis();
   const [chatOn, setchatOn] = useState(false)
-  const [phrase, setphrase] = useState('')
+  const [myPhrase, setMyPhrase] = useState('')
+  const [botPhrase, setBotPhrase] = useState('')
+  const [phraseOnScreen, setPhraseOnScreen] = useState('')
 
   useEffect(() => {
-    if (phrase !== '') {
+    if (myPhrase !== '') {
       resetTranscript()
-      console.log(phrase)
-      speak({ text: phrase })
+      setPhraseOnScreen(myPhrase)
+      console.log(`myPhrase on ${myPhrase}`)
+      speak({ text: myPhrase })
+      setMyPhrase('')
     }
-  }, [phrase])
+  }, [myPhrase])
+
+  useEffect(() => {
+    if (botPhrase !== '') {
+      setPhraseOnScreen(botPhrase)
+      console.log(`botPhrase on ${botPhrase}`)
+      speak({ text: botPhrase })
+      setBotPhrase('')
+    }
+  }, [botPhrase])
 
   if (!SpeechRecognition.browserSupportsSpeechRecognition()) {
     return (
@@ -35,20 +48,19 @@ const App = () => {
 
   const handleChatOn = () => {
     setchatOn(!chatOn)
+    setBotPhrase(`What's on Your Mind?`)
     SpeechRecognition.startListening({
       continuous: true,
       language: 'en-US',
     });
   }
   const handleChatOff = () => {
+    SpeechRecognition.stopListening();
     resetTranscript();
     setchatOn(!chatOn)
-    SpeechRecognition.stopListening();
   }
   const notSoFast = (e) => {
-    e.preventDefault()
-    resetTranscript();
-    speak({ text: transcript })
+    setMyPhrase(`hey dont leave we can talk more`)
     console.log(`dont go`);
   }
   return (
@@ -60,18 +72,18 @@ const App = () => {
             {transcript ?
               <p>{transcript}</p>
               :
-              <p>{phrase}</p>
+              <p>{phraseOnScreen}</p>
             }
           </div>
           :
           <div>
             <img src={logo} className="App-logo-stop" alt="logo" onClick={handleChatOn} />
-            <p>click logo to start boilerplate chat</p>
+            <p>Click logo to start boilerplate chat...</p>
           </div>
         }
         <a
           className="App-link"
-          href="https://reactjs.org"
+          href="https://github.com/Pinosto/boilerplate-chat"
           target="_blank"
           rel="noopener noreferrer"
           onClick={notSoFast}
