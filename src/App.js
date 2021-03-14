@@ -1,10 +1,13 @@
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import { useSpeechSynthesis } from 'react-speech-kit';
+import axios from 'axios'
+import { v4 as uuid } from 'uuid'
 import logo from './logo.svg';
 import './App.css';
 import { useEffect, useState } from 'react';
 
 const App = () => {
+  const sessionId = uuid()
 
   const commands = [
     {
@@ -12,6 +15,7 @@ const App = () => {
       callback: (userSpeak) => setMyPhrase(userSpeak)
     },
   ]
+  
   const { transcript, resetTranscript } = useSpeechRecognition({ commands });
   const { speak } = useSpeechSynthesis();
   const [chatOn, setchatOn] = useState(false)
@@ -24,7 +28,10 @@ const App = () => {
       resetTranscript()
       setPhraseOnScreen(myPhrase)
       console.log(`myPhrase on ${myPhrase}`)
-      speak({ text: myPhrase })
+      const messageObject = { text: myPhrase, uuid: sessionId }
+      axios
+        .post('http://localhost:3003/', messageObject)
+        .then(res => setBotPhrase(res.data))
       setMyPhrase('')
     }
   }, [myPhrase])
@@ -60,9 +67,11 @@ const App = () => {
     setchatOn(!chatOn)
   }
   const notSoFast = (e) => {
-    setMyPhrase(`hey dont leave we can talk more`)
+    setBotPhrase(`hey dont leave we can talk more`)
     console.log(`dont go`);
   }
+
+
   return (
     <div className="App">
       <header className="App-header">
