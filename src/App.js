@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import { useSpeechSynthesis } from 'react-speech-kit';
 import axios from 'axios'
@@ -5,6 +6,8 @@ import { v4 as uuid } from 'uuid'
 import logo from './logo.svg';
 import './App.css';
 import { useEffect, useState } from 'react';
+const baseUrl = '/api/dialogflow'
+
 
 const App = () => {
   const sessionId = uuid()
@@ -15,7 +18,7 @@ const App = () => {
       callback: (userSpeak) => setMyPhrase(userSpeak)
     },
   ]
-  
+
   const { transcript, resetTranscript } = useSpeechRecognition({ commands });
   const { speak } = useSpeechSynthesis();
   const [chatOn, setchatOn] = useState(false)
@@ -27,11 +30,12 @@ const App = () => {
     if (myPhrase !== '') {
       resetTranscript()
       setPhraseOnScreen(myPhrase)
-      console.log(`myPhrase on ${myPhrase}`)
+      console.log(`myPhrase: ${myPhrase}`)
       const messageObject = { text: myPhrase, uuid: sessionId }
       axios
-        .post('http://localhost:3003/', messageObject)
+        .post(baseUrl, messageObject)
         .then(res => setBotPhrase(res.data))
+        .catch(() => setBotPhrase('Back end is taking break.'))
       setMyPhrase('')
     }
   }, [myPhrase])
@@ -39,7 +43,7 @@ const App = () => {
   useEffect(() => {
     if (botPhrase !== '') {
       setPhraseOnScreen(botPhrase)
-      console.log(`botPhrase on ${botPhrase}`)
+      console.log(`botPhrase: ${botPhrase}`)
       speak({ text: botPhrase })
       setBotPhrase('')
     }
@@ -47,7 +51,7 @@ const App = () => {
 
   if (!SpeechRecognition.browserSupportsSpeechRecognition()) {
     return (
-      <div className="mircophone-container">
+      <div>
         Browser is not Support Speech Recognition.
       </div>
     );
@@ -67,8 +71,7 @@ const App = () => {
     setchatOn(!chatOn)
   }
   const notSoFast = (e) => {
-    setBotPhrase(`hey dont leave we can talk more`)
-    console.log(`dont go`);
+    setBotPhrase(`Hey don't leave.`)
   }
 
 
